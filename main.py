@@ -33,9 +33,8 @@ def setup():
   rgb = rgb_util.Rgb(led_pins)
   ssegment = ssegment_util.SevenSegment(segment_pins)
 
-  rgb.cycle_leds()
+  # rgb.cycle_leds()
   # ssegment.cycle_segments()
-  ssegment.cycle_segments()
 
   return scale, rgb, ssegment
 
@@ -56,24 +55,28 @@ def main():
 
 def menu(scale, rgb, ssegment):
   menu_text = ('What would you like to do?\n'
-               '1. Zero the scale.\n'
-               '2. Read forever.\n'
-               '3. Test led.\n'
-               '4. Test seven segment.\n'
+               '1. Calibrate the scale.\n'
+               '2. Zero the scale.\n'
+               '3. Read forever.\n'
+               '4. Test the led.\n'
+               '5. Test the seven segment display.\n'
                '(Press Ctrl-C to escape any menu)\n'
                '> ')
   choice = input(menu_text).strip()
 
   if choice == '1':
-    scale.zero_scale()
+    scale.calibrate()
     return
   if choice == '2':
-    scale.read_forever()
+    scale.zero()
     return
   if choice == '3':
-    rgb.cycle_leds()
+    scale.read_forever()
     return
   if choice == '4':
+    rgb.cycle_leds()
+    return
+  if choice == '5':
     ssegment.cycle_segments()
     return
   print('Invalid choice!')
