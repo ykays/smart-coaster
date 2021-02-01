@@ -11,8 +11,22 @@ def setup():
       'BLUE': 21,
   }
   segment_pins = {
-      'SEGMENTS': [11, 4, 23, 8, 7, 10, 18, 25],
-      'DIGITS': [22, 27, 17, 24],
+      'SEGMENTS': [
+        11, # 7seg 11
+        4,  # 7seg 7
+        23, # 7seg 4
+        8,  # 7seg 2
+        7,  # 7seg 1
+        10, # 7seg 10
+        18, # 7seg 5
+        25, # 7seg 3 (decimal point)
+      ],
+      'DIGITS': [
+        22, # 1
+        27, # 2
+        17, # 3
+        24, # 4
+      ],
   }
 
   scale = scale_util.Scale()
@@ -20,6 +34,7 @@ def setup():
   ssegment = ssegment_util.SevenSegment(segment_pins)
 
   rgb.cycle_leds()
+  # ssegment.cycle_segments()
   ssegment.cycle_segments()
 
   return scale, rgb, ssegment

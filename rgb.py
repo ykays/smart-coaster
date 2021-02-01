@@ -15,6 +15,6 @@ class Rgb:
     for color, pin in self.pins.items():
       print(f'Lighting: {color}')
       GPIO.output(pin, GPIO.HIGH)
-      time.sleep(0.5)
+      time.sleep(0.2)
       GPIO.output(pin, GPIO.LOW)
     print('RGB health check complete!')
