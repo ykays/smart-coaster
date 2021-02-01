@@ -1,19 +1,37 @@
 import rgb as rgb_util
 import scale as scale_util
+import ssegment as ssegment_util
 import RPi.GPIO as GPIO
 
-def main():
+
+def setup():
   led_pins = {
-    'RED': 16,
-    'GREEN': 20,
-    'BLUE': 21,
+      'RED': 16,
+      'GREEN': 20,
+      'BLUE': 21,
+  }
+  segment_pins = {
+      'SEGMENTS': [11, 4, 23, 8, 7, 10, 18, 25],
+      'DIGITS': [22, 27, 17, 24],
   }
 
+  scale = scale_util.Scale()
+  rgb = rgb_util.Rgb(led_pins)
+  ssegment = ssegment_util.SevenSegment(segment_pins)
+
+  rgb.cycle_leds()
+  ssegment.cycle_segments()
+
+  return scale, rgb, ssegment
+
+
+def main():
   try:
-    scale = scale_util.Scale()
-    rgb = rgb_util.Rgb(led_pins)
+    scale, rgb, ssegment = setup()
+
     while True:
-      menu(scale, rgb)
+      menu(scale, rgb, ssegment)
+
   except KeyboardInterrupt:
     print('Goodbye!')
     return 0
@@ -21,12 +39,15 @@ def main():
     GPIO.cleanup()
 
 
-def menu(scale, rgb):
+def menu(scale, rgb, ssegment):
   menu_text = ('What would you like to do?\n'
                '1. Zero the scale.\n'
                '2. Read forever.\n'
-               '3. Light led.\n')
-  choice = input(menu_text)
+               '3. Test led.\n'
+               '4. Test seven segment.\n'
+               '(Press Ctrl-C to escape any menu)\n'
+               '> ')
+  choice = input(menu_text).strip()
 
   if choice == '1':
     scale.zero_scale()
@@ -36,6 +57,9 @@ def menu(scale, rgb):
     return
   if choice == '3':
     rgb.cycle_leds()
+    return
+  if choice == '4':
+    ssegment.cycle_segments()
     return
   print('Invalid choice!')
 

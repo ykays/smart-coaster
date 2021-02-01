@@ -9,7 +9,6 @@ class Rgb:
     self.pins = pins
     for pin in pins.values():
       GPIO.setup(pin, GPIO.OUT)
-    self.cycle_leds()
 
   def cycle_leds(self):
     print('Starting RGB health check...')
