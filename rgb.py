@@ -12,10 +12,10 @@ class Rgb:
     self.cycle_leds()
 
   def cycle_leds(self):
-    print('lighting LEDs')
+    print('Starting RGB health check...')
     for color, pin in self.pins.items():
       print(f'Lighting: {color}')
       GPIO.output(pin, GPIO.HIGH)
       time.sleep(0.5)
       GPIO.output(pin, GPIO.LOW)
-    print('Lit all colors.')
+    print('RGB health check complete!')
