@@ -1,7 +1,11 @@
+import os
+
 import rgb as rgb_util
 import scale as scale_util
 import ssegment as ssegment_util
 import RPi.GPIO as GPIO
+
+DATA_DIR = '/home/pi/.smart-scale'
 
 
 def setup():
@@ -12,24 +16,26 @@ def setup():
   }
   segment_pins = {
       'SEGMENTS': [
-        11, # 7seg 11
-        4,  # 7seg 7
-        23, # 7seg 4
-        8,  # 7seg 2
-        7,  # 7seg 1
-        10, # 7seg 10
-        18, # 7seg 5
-        25, # 7seg 3 (decimal point)
+          11,  # 7seg 11
+          4,  # 7seg 7
+          23,  # 7seg 4
+          8,  # 7seg 2
+          7,  # 7seg 1
+          10,  # 7seg 10
+          18,  # 7seg 5
+          25,  # 7seg 3 (decimal point)
       ],
       'DIGITS': [
-        22, # 1
-        27, # 2
-        17, # 3
-        24, # 4
+          22,  # 1
+          27,  # 2
+          17,  # 3
+          24,  # 4
       ],
   }
 
-  scale = scale_util.Scale()
+  os.makedirs(DATA_DIR, exist_ok=True)
+
+  scale = scale_util.Scale(data_dir=DATA_DIR)
   rgb = rgb_util.Rgb(led_pins)
   ssegment = ssegment_util.SevenSegment(segment_pins)
 
