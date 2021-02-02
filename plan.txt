@@ -1,0 +1,29 @@
+> Zero to cup
+"Please place empty glass on the scale"
+"...Weighing"
+"You can now put water in the cup."
+
+> Fill glass
+Any time a heavier weight is detected, record that as added water.
+
+> Drink water
+Any time a lighter weight is detected, record that as drank water.
+
+> Start timer
+"Ready... go!"
+Record target water.
+Record the start time.
+Zero water drank since start
+Zero water added since start
+
+> REPL
+Thread to:
+  1. Show the current time
+
+Thread to:
+  1. Check the "water health" (water drank - water added ~ target water)
+  2. Update the LED
+  3. If water done, celebrate!
+    - Zero the start time.
+  4. If time done, punish!
+    - Zero the start time.

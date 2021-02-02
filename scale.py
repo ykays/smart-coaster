@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import collections
+import logging
 import os
 import statistics
 
@@ -40,7 +41,7 @@ class Scale:
         raw_grams, raw_weight = f.read().strip().split(',')
         self.known_grams = float(raw_grams)
         self.calibrate_weight = int(raw_weight)
-        print(f'Loaded ratio {self.gram_to_read_ratio}'
+        logging.info(f'Loaded ratio {self.gram_to_read_ratio}'
               f' from {self.calibrate_file}')
     except (FileNotFoundError, ValueError):
       pass  # That's okay - stick with the default.
@@ -48,7 +49,7 @@ class Scale:
     try:
       with open(self.zero_file, 'r') as f:
         self.empty_weight = int(f.read().strip())
-        print(f'Zeroed to {self.empty_weight} from {self.zero_file}.')
+        logging.info(f'Zeroed to {self.empty_weight} from {self.zero_file}.')
     except (FileNotFoundError, ValueError):
       pass  # That's okay - stick with the default.
 
@@ -74,20 +75,20 @@ class Scale:
       while True:
         reading = self.read()
         grams = self.get_grams(reading)
-        print(
+        logging.info(
             f'Current: {grams}g ({reading}) | History: {list(self.history)})')
     except KeyboardInterrupt:
       return
 
   def zero(self):
     input('Please remove all objects from the scale, then press enter.')
-    print('Zeroing, please wait...')
+    logging.info('Zeroing, please wait...')
     self.reset()
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
       self.empty_weight = self.read(times=10, zeroed=False)
     with open(self.zero_file, 'w') as f:
       f.write(f'{self.empty_weight}')
-    print(f'Zeroed to {self.empty_weight}!')
+    logging.info(f'Zeroed to {self.empty_weight}!')
 
   @property
   def gram_to_read_ratio(self):
@@ -100,15 +101,15 @@ class Scale:
       try:
         self.known_grams = float(known_raw)
       except:
-        print('Please enter a number.')
+        logging.info('Please enter a number.')
 
     input(
         f'Please place your {self.known_grams}g object on the scale, then'
         ' press enter.'
     )
-    print('Weighing, please wait...')
+    logging.info('Weighing, please wait...')
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
       self.calibrate_weight = self.read(times=10, zeroed=False)
     with open(self.calibrate_file, 'w') as f:
       f.write(f'{self.known_grams},{self.calibrate_weight}')
-    print(f'New ratio: {self.gram_to_read_ratio}')
+    logging.info(f'New ratio: {self.gram_to_read_ratio}')

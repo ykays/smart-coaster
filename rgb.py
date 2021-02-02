@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import logging
 import time
 import RPi.GPIO as GPIO
 
@@ -11,10 +12,10 @@ class Rgb:
       GPIO.setup(pin, GPIO.OUT)
 
   def cycle_leds(self):
-    print('Starting RGB health check...')
+    logging.info('Starting RGB health check...')
     for color, pin in self.pins.items():
-      print(f'Lighting: {color}')
+      logging.info(f'Lighting: {color}')
       GPIO.output(pin, GPIO.HIGH)
       time.sleep(0.2)
       GPIO.output(pin, GPIO.LOW)
-    print('RGB health check complete!')
+    logging.info('RGB health check complete!')

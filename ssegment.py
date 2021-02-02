@@ -1,4 +1,5 @@
 import RPi.GPIO as GPIO
+import logging
 import itertools
 import time
 
@@ -54,7 +55,7 @@ class SevenSegment:
       GPIO.output(segment, GPIO.LOW)
 
   def cycle_segments(self):
-    print('Starting seven segment health check...')
+    logging.info('Starting seven segment health check...')
     for char in range(10):
       start = time.time()
       while time.time() - start < 0.2:
