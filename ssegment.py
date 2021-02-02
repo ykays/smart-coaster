@@ -63,3 +63,13 @@ class SevenSegment:
           self.select_digit(digit)
           self.show_char(str((char + digit) % 9))
     self.clear()
+
+  def display_from_queue(self):
+    raise NotImplementedError()
+
+  def display_string(self, display):
+    if len(display) != 4:
+      raise ValueError()
+    if any(d not in DIGIT_MAP for d in display):
+      raise ValueError()
+    raise NotImplementedError()
