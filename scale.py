@@ -20,7 +20,7 @@ class Scale:
     self.history = collections.deque(maxlen=HISTORY_SIZE)
 
   def get_grams(self, reading):
-    return int(round((reading + self.empty_weight) * self.gram_to_read_ratio))
+    return int(round(reading * self.gram_to_read_ratio))
 
   def read(self, times=READ_SIZE, zeroed=True, use_history=True):
     reading = self.hx711.get_raw_data(times)
@@ -70,5 +70,6 @@ class Scale:
     print('Weighing, please wait...')
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
       read_weight = self.read(times=10, zeroed=False)
+    read_weight -= self.empty_weight
     self.gram_to_read_ratio = known_grams / read_weight
     print(f'New ratio: {self.gram_to_read_ratio}')
