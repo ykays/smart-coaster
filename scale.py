@@ -12,12 +12,13 @@ READ_SIZE = 3
 class Scale:
   def __init__(self, data_dir):
     self.data_dir = data_dir
-    self.gram_to_read_ratio = 1
     self.hx711 = HX711(dout_pin=5, pd_sck_pin=6, channel='A', gain=64)
     self.reset()
     self.load_from_data()
 
   def reset(self):
+    self.known_grams = 1
+    self.calibrate_weight = 1
     self.empty_weight = 0
     self.hx711.reset()
     self.history = collections.deque(maxlen=HISTORY_SIZE)
@@ -36,7 +37,9 @@ class Scale:
   def load_from_data(self):
     try:
       with open(self.calibrate_file, 'r') as f:
-        self.gram_to_read_ratio = float(f.read().strip())
+        raw_grams, raw_weight = f.read().strip().split(',')
+        self.known_grams = float(raw_grams)
+        self.calibrate_weight = int(raw_weight)
         print(f'Loaded ratio {self.gram_to_read_ratio}'
               f' from {self.calibrate_file}')
     except (FileNotFoundError, ValueError):
@@ -83,27 +86,29 @@ class Scale:
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
       self.empty_weight = self.read(times=10, zeroed=False)
     with open(self.zero_file, 'w') as f:
-      f.write(str(self.empty_weight))
+      f.write(f'{self.empty_weight}')
     print(f'Zeroed to {self.empty_weight}!')
 
+  @property
+  def gram_to_read_ratio(self):
+    return self.known_grams / (self.calibrate_weight - self.empty_weight)
+
   def calibrate(self):
-    self.zero()
-    known_grams = None
-    while not known_grams:
+    self.known_grams = None
+    while not self.known_grams:
       known_raw = input('How much weight is your known weight (in g)? ')
       try:
-        known_grams = float(known_raw)
+        self.known_grams = float(known_raw)
       except:
         print('Please enter a number.')
 
     input(
-        f'Please place your {known_grams}g object on the scale, then press enter.'
+        f'Please place your {self.known_grams}g object on the scale, then'
+        ' press enter.'
     )
     print('Weighing, please wait...')
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
-      read_weight = self.read(times=10, zeroed=False)
-    read_weight -= self.empty_weight
-    self.gram_to_read_ratio = known_grams / read_weight
+      self.calibrate_weight = self.read(times=10, zeroed=False)
     with open(self.calibrate_file, 'w') as f:
-      f.write(str(self.gram_to_read_ratio))
+      f.write(f'{self.known_grams},{self.calibrate_weight}')
     print(f'New ratio: {self.gram_to_read_ratio}')
