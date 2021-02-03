@@ -1,6 +1,7 @@
 import logging
 import os
 
+import water_coach
 import rgb as rgb_util
 import scale as scale_util
 import ssegment as ssegment_util
@@ -39,16 +40,17 @@ def setup():
   scale = scale_util.Scale(data_dir=DATA_DIR)
   rgb = rgb_util.Rgb(led_pins)
   ssegment = ssegment_util.SevenSegment(segment_pins)
+  coach = water_coach.WaterCoach(scale, rgb, ssegment)
 
-  return scale, rgb, ssegment
+  return scale, rgb, ssegment, coach
 
 
 def main():
   try:
-    scale, rgb, ssegment = setup()
+    scale, rgb, ssegment, coach = setup()
 
     while True:
-      menu(scale, rgb, ssegment)
+      menu(scale, rgb, ssegment, coach)
 
   except KeyboardInterrupt:
     print('Goodbye!')
@@ -57,7 +59,7 @@ def main():
     GPIO.cleanup()
 
 
-def menu(scale, rgb, ssegment):
+def menu(scale, rgb, ssegment, coach):
   menu_text = ('What would you like to do?\n'
                '1. Calibrate the scale.\n'
                '2. Zero the scale.\n'
@@ -65,6 +67,7 @@ def menu(scale, rgb, ssegment):
                '4. Test the led.\n'
                '5. Show led colors.\n'
                '6. Test the seven segment display.\n'
+               '7. Drink some water!\n'
                '(Press Ctrl-C to escape any menu)\n'
                '> ')
   choice = input(menu_text).strip()
@@ -86,6 +89,9 @@ def menu(scale, rgb, ssegment):
     return
   if choice == '6':
     ssegment.cycle_segments()
+    return
+  if choice == '7':
+    coach.run()
     return
   print('Invalid choice!')
 

@@ -74,8 +74,9 @@ class Scale:
 
   def read_grams_high_fidelity(self):
     for i in range(HISTORY_SIZE):  # Build up some history.
-      reading = self.read()
-    return self.get_grams(reading)
+      reading = self.read_grams()
+      print(reading)
+    return reading
 
   def read_forever(self):
     for i in range(HISTORY_SIZE):  # Build up some history.

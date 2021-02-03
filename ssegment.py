@@ -68,24 +68,16 @@ class SevenSegment:
           self.show_char(f'{(char + digit) % 9}')
     self.clear()
 
-  def display_from_queue(self, source_queue):
-    self.queue = source_queue
-    if self.display_process:
-      self.queue.put(StopIteration())
-      self.display_process.join()
-    self.display_process = multiprocessing.Process(target=self._display_worker)
+  def display_countdown(self, start_time, target_time):
+    self.display_process = multiprocessing.Process(target=self._display_worker,
+                                                   args=(start_time, target_time))
+    self.display_process.start()
 
-  def _display_worker(self):
-    display = None
+  def _display_worker(self, start_time, target_time):
     while True:
-      try:
-        display = self.queue.get_nowait()
-        if isinstance(display, StopIteration):
-          self.clear()
-          break
-      except queue.Empty:
-        pass
-      self.display_string(display or '8888')
+      time_remaining = target_time - (time.time() - start_time)
+      display = display_time(time_remaining)
+      self.display_string(display)
 
   def display_string(self, display):
     if len(display) != 4:
@@ -95,3 +87,12 @@ class SevenSegment:
     for digit in range(4):
       self.select_digit(digit)
       self.show_char(display[digit])
+
+def display_time(time_remaining):
+  seconds = int(time_remaining ) % 60
+  minutes = int(time_remaining / 60) % 60
+  hours = int(time_remaining / (60 * 60)) % 24
+  if not hours:
+    return f'{minutes:2}{seconds:02}'
+  return f'{hours:2}{minutes:02}'
+
