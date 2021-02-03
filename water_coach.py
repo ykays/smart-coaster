@@ -50,6 +50,7 @@ class WaterCoach:
   def prompt_target_water(self):
     input('Place your full glass of water on the scale, then press enter.')
     self.target_water = self.scale.read_grams_high_fidelity()
+    self.last_weight = self.target_water
     print(f'Your water goal: {self.target_water}ml')
 
   def prompt_target_time(self):
@@ -73,6 +74,7 @@ class WaterCoach:
 
   def check_water(self):
     new_weight = self.scale.read_grams()
+    print(new_weight, self.last_weight)
     if new_weight < 0:
       return  # The user picked up the cup, ignore this.
 
