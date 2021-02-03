@@ -1,7 +1,9 @@
 import RPi.GPIO as GPIO
 import logging
 import itertools
+import multiprocessing
 import time
+import queue
 
 DIGIT_MAP = {
     ' ': (0, 0, 0, 0, 0, 0, 0),
@@ -20,6 +22,8 @@ DIGIT_MAP = {
 
 class SevenSegment:
   def __init__(self, pins):
+    self.display_process = None
+    self.queue = None
     GPIO.setmode(GPIO.BCM)
     self.pins = pins
     for segment in pins['SEGMENTS']:
@@ -61,15 +65,33 @@ class SevenSegment:
       while time.time() - start < 0.2:
         for digit in range(4):
           self.select_digit(digit)
-          self.show_char(str((char + digit) % 9))
+          self.show_char(f'{(char + digit) % 9}')
     self.clear()
 
-  def display_from_queue(self):
-    raise NotImplementedError()
+  def display_from_queue(self, source_queue):
+    self.queue = source_queue
+    if self.display_process:
+      self.queue.put(StopIteration())
+      self.display_process.join()
+    self.display_process = multiprocessing.Process(target=self._display_worker)
+
+  def _display_worker(self):
+    display = None
+    while True:
+      try:
+        display = self.queue.get_nowait()
+        if isinstance(display, StopIteration):
+          self.clear()
+          break
+      except queue.Empty:
+        pass
+      self.display_string(display or '8888')
 
   def display_string(self, display):
     if len(display) != 4:
-      raise ValueError()
+      raise ValueError(f'Can only display strings of length four: {display}')
     if any(d not in DIGIT_MAP for d in display):
-      raise ValueError()
-    raise NotImplementedError()
+      raise ValueError(f'Tried to display invalid digit(s): {display}')
+    for digit in range(4):
+      self.select_digit(digit)
+      self.show_char(display[digit])

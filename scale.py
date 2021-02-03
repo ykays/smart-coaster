@@ -42,7 +42,7 @@ class Scale:
         self.known_grams = float(raw_grams)
         self.calibrate_weight = int(raw_weight)
         logging.info(f'Loaded ratio {self.gram_to_read_ratio}'
-              f' from {self.calibrate_file}')
+                     f' from {self.calibrate_file}')
     except (FileNotFoundError, ValueError):
       pass  # That's okay - stick with the default.
 
@@ -68,6 +68,15 @@ class Scale:
       reading = reading - self.empty_weight
     return reading
 
+  def read_grams(self):
+    reading = self.read()
+    return self.get_grams(reading)
+
+  def read_grams_high_fidelity(self):
+    for i in range(HISTORY_SIZE):  # Build up some history.
+      reading = self.read()
+    return self.get_grams(reading)
+
   def read_forever(self):
     for i in range(HISTORY_SIZE):  # Build up some history.
       self.read()
@@ -80,8 +89,10 @@ class Scale:
     except KeyboardInterrupt:
       return
 
-  def zero(self):
-    input('Please remove all objects from the scale, then press enter.')
+  def zero(
+      self,
+      prompt='Please remove all objects from the scale, then press enter.'):
+    input(prompt)
     logging.info('Zeroing, please wait...')
     self.reset()
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
@@ -103,10 +114,8 @@ class Scale:
       except:
         logging.info('Please enter a number.')
 
-    input(
-        f'Please place your {self.known_grams}g object on the scale, then'
-        ' press enter.'
-    )
+    input(f'Please place your {self.known_grams}g object on the scale, then'
+          ' press enter.')
     logging.info('Weighing, please wait...')
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
       self.calibrate_weight = self.read(times=10, zeroed=False)
