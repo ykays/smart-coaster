@@ -97,5 +97,5 @@ def menu(scale, rgb, ssegment, coach):
 
 
 if __name__ == "__main__":
-  logging.getLogger().setLevel('INFO')
+  logging.getLogger().setLevel('ERROR')
   main()
