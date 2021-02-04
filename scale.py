@@ -7,6 +7,8 @@ import statistics
 from hx711 import HX711
 
 HISTORY_SIZE = 10
+# How accurate reads must be to count them.
+READ_TOLERANCE = 0.9
 READ_SIZE = 3
 
 
@@ -41,7 +43,7 @@ class Scale:
         raw_grams, raw_weight = f.read().strip().split(',')
         self.known_grams = float(raw_grams)
         self.calibrate_weight = int(raw_weight)
-        logging.info(f'Loaded ratio {self.gram_to_read_ratio}'
+        logging.info(f'Loaded ratio {self.known_grams}, {self.calibrate_weight} -> {self.gram_to_read_ratio}'
                      f' from {self.calibrate_file}')
     except (FileNotFoundError, ValueError):
       pass  # That's okay - stick with the default.
@@ -59,18 +61,21 @@ class Scale:
     reading = int(round(reading, -3))
     self.history.append(reading)
     if use_history:
-      try:
-        reading = statistics.mode(self.history)
-      except statistics.StatisticsError:
-        # There is no mode - get the last value, instead.
-        return self.history[-1]
+      reading, count = collections.Counter(self.history).most_common()[0]
+      if count < (HISTORY_SIZE * READ_TOLERANCE):
+        # Not very  confident in this reading - try again.
+        logging.info(f'Not confident with history: {list(self.history)}')
+        return self.read(times=times, zeroed=zeroed, use_history=use_history)
     if zeroed:
       reading = reading - self.empty_weight
     return reading
 
   def read_grams(self):
     reading = self.read()
-    return self.get_grams(reading)
+    grams = self.get_grams(reading)
+    logging.info(
+        f'Current: {grams}g ({reading}) | History: {list(self.history)})')
+    return grams
 
   def read_grams_high_fidelity(self):
     for i in range(HISTORY_SIZE):  # Build up some history.
@@ -85,8 +90,6 @@ class Scale:
       while True:
         reading = self.read()
         grams = self.get_grams(reading)
-        logging.info(
-            f'Current: {grams}g ({reading}) | History: {list(self.history)})')
     except KeyboardInterrupt:
       return
 
@@ -97,13 +100,15 @@ class Scale:
     logging.info('Zeroing, please wait...')
     self.reset()
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
-      self.empty_weight = self.read(times=10, zeroed=False)
+      self.empty_weight = self.read(zeroed=False)
     with open(self.zero_file, 'w') as f:
       f.write(f'{self.empty_weight}')
     logging.info(f'Zeroed to {self.empty_weight}!')
 
   @property
   def gram_to_read_ratio(self):
+    if self.calibrate_weight == self.empty_weight:
+      raise ValueError('Must calibrate to something other than zero.')
     return self.known_grams / (self.calibrate_weight - self.empty_weight)
 
   def calibrate(self):
@@ -119,7 +124,7 @@ class Scale:
           ' press enter.')
     logging.info('Weighing, please wait...')
     for i in range(HISTORY_SIZE):  # Read a bunch to eliminate flaky data.
-      self.calibrate_weight = self.read(times=10, zeroed=False)
+      self.calibrate_weight = self.read(zeroed=False)
     with open(self.calibrate_file, 'w') as f:
       f.write(f'{self.known_grams},{self.calibrate_weight}')
     logging.info(f'New ratio: {self.gram_to_read_ratio}')

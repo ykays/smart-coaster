@@ -12,7 +12,7 @@ class WaterCoach:
     self.reset()
 
   def run(self):
-    self.maybe_zero_cup()
+    self.prompt_empty_cup()
     self.prompt_target_water()
     self.prompt_target_time()
     logging.info('Drink up!')
@@ -29,6 +29,7 @@ class WaterCoach:
     self.target_time = None
     self.water_drank = 0
     self.water_added = 0
+    self.empty_cup = 0
     self.rgb.set_color('WHITE')
 
   @property
@@ -49,7 +50,7 @@ class WaterCoach:
 
   def prompt_target_water(self):
     input('Place your full glass of water on the scale, then press enter.')
-    self.target_water = self.scale.read_grams_high_fidelity()
+    self.target_water = self.scale.read_grams_high_fidelity() - self.empty_cup
     self.last_weight = self.target_water
     print(f'Your water goal: {self.target_water}ml')
 
@@ -63,17 +64,15 @@ class WaterCoach:
         print('I didn\'t catch that.'
               'Please enter a number of hours (such as 1.5)')
 
-  def maybe_zero_cup(self):
-    response = None
-    while response not in ['y', 'n']:
-      response = input(
-          'Would you like to reset the weight of the glass? (y/n)')
-    if response == 'y':
-      self.scale.zero(
-          prompt='Please place your empty cup on the scale, then press enter.')
+  def prompt_empty_cup(self):
+    input('Place your empty glass of water on the scale, then press enter.')
+    self.empty_cup = self.scale.read_grams_high_fidelity()
+    self.last_weight = 0
+    print(f'Weight of cup: {self.empty_cup}g')
+
 
   def check_water(self):
-    new_weight = self.scale.read_grams()
+    new_weight = self.scale.read_grams() - self.empty_cup
     print(new_weight, self.last_weight)
     if new_weight < 0:
       return  # The user picked up the cup, ignore this.
